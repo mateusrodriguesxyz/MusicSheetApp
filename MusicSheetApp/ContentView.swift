@@ -1,134 +1,109 @@
 import SwiftUI
 
-struct SheetView: View {
-    
-    @StateObject var synth = AudioSynth()
-    
-    @State var highlighted = -1
+struct ScoreSheetView: View {
     
     let clef: Clef
     
     let elements: [SheetElement]
     
-    let timer = Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()
+    let selected: Int
     
     var body: some View {
-        HStack(spacing: 50) {
-            
-            let indexedElements = Array(elements.expanded().enumerated())
-
-            ForEach(indexedElements, id: \.offset) { (index, element) in
-                Group {
-                    switch element {
-                        case .note(let note, _):
-                            makeNoteView(note)
-                        case .rest:
-                            makeRestView()
-                        case .space:
-                            Color.clear
-                                .frame(width: 50)
-                    }
+        ZStack {
+            VStack(spacing: 0) {
+                ForEach(0..<4) { i in
+                    Rectangle()
+                        .stroke(.foreground, lineWidth: 5)
                 }
-                .frame(maxHeight: .infinity)
-                .border(index == highlighted  ? .blue : .clear)
+            }
+            HStack(spacing: 50) {
+                let indexedElements = Array(elements.expanded().enumerated())
+                ForEach(indexedElements, id: \.offset) { (index, element) in
+                    Group {
+                        switch element {
+                            case .note(let note, let duration):
+                                makeNoteView(note, duration: duration)
+                            case .rest:
+                                makeRestView()
+                            case .space:
+                                Color.clear
+                        }
+                    }
+                    .frame(width: 60)
+                    .frame(maxHeight: .infinity)
+                    .border(selected == index ? .blue : .clear)
+                }
             }
         }
-//        .onReceive(timer) { _ in
-//            if highlighted == -1 {
-//                let notes = elements.compactMap { element in
-//                    if case let .note(value, _) = element {
-//                        return value
-//                    } else {
-//                        return nil
-//                    }
-//                }
-//                synth.play(notes)
-//            }
-//            if highlighted == elements.expanded().count - 1 {
-//                highlighted = -1
-//            } else {
-//                highlighted += 1
-//            }
-//        }
+        .frame(height: 200)
     }
     
-    func makeNoteView(_ note: Int) -> some View {
+    func makeNoteView(_ note: Int, duration: Int) -> some View {
         Group {
             let dx = -25 * CGFloat(clef.distance(of: note))
-            
             let position = clef.position(of: note)
-            
-            Button {
-//                synth.play([note])
-            } label: {
-                Rectangle()
-                    .fill(.clear)
-                    .overlay {
-                        Image("QuarterNote")
-                            .resizable()
-                            .overlay(alignment: .trailing) {
-                                Rectangle()
-                                    .fill(.foreground)
-                                    .frame(width: 10, height: 165)
-                                    .alignmentGuide(VerticalAlignment.center) {
-                                        $0[.bottom] + 10
-                                    }
-                            }
-                    }
-                    .compositingGroup()
-                    .frame(width: 50, height: 50)
+            Group {
+                if dx > 0 {
+                    ScoreNoteWithTopStem(duration: duration)
+                } else {
+                    ScoreNoteWithBottomStem(duration: duration)
+                }
             }
-            .buttonStyle(.plain)
             .overlay {
                 if  position == .line, note < clef.lowerNote || note > clef.uperNote {
                     Rectangle()
                         .fill(.foreground)
-                        .frame(width: 100, height: 1)
+                        .frame(width: 100, height: 5)
                 }
             }
             .offset(y: dx)
+            .compositingGroup()
         }
     }
     
     func makeRestView() -> some View {
         Rectangle()
-            .fill(.foreground)
-            .frame(width: 50, height: 25)
+            .frame(height: 25)
             .alignmentGuide(VerticalAlignment.center) { $0[.bottom] }
     }
     
 }
 
 struct ContentView: View {
+    
+    @State var selected = -1
+    
+    @StateObject var synth = AudioSynth()
+    
+    @State var timer = Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()
+    
+    let elements: [SheetElement] = [
+        .note(value: 64, duration: 2),
+        .rest(duration: 2),
+        .note(value: 71, duration: 1),
+        .note(value: 72, duration: 1),
+    ]
+    
     var body: some View {
-        ZStack {
-            VStack(spacing: 0) {
-                ForEach(0..<4) { i in
-                    Color.clear
-                        .frame(height: 50)
-                        .overlay(alignment: .bottom) {
-                            if i != 3 {
-                                Rectangle()
-                                    .fill(.foreground)
-                                    .frame(height: 1)
-                            }
-                        }
-                }
+        VStack {
+            ScoreSheetView(clef: .g, elements: elements, selected: selected)
+                .padding(.vertical, 100)
+            Button("Play Sequence") {
+                selected = 0
+                timer = Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()
+                synth.play(elements.musicSequence)
             }
-            SheetView(clef: .g, elements: [
-                .note(value: 60, duration: 1),
-                .note(value: 62, duration: 1),
-                .note(value: 64, duration: 1),
-                .note(value: 65, duration: 1),
-                .note(value: 67, duration: 1),
-                .note(value: 69, duration: 1),
-                .note(value: 71, duration: 1),
-                .note(value: 72, duration: 1),
-            ])
+            .buttonStyle(.borderedProminent)
         }
-        .frame(height: 200)
-        .border(.foreground)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onAppear() {
+            timer.upstream.connect().cancel()
+        }
+        .onReceive(timer) { _ in
+            if selected >= 0 {
+                selected += 1
+            }
+        }
     }
 }
 
