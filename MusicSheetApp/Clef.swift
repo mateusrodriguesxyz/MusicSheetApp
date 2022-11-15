@@ -1,38 +1,5 @@
 import Foundation
-
-enum SheetElement {
-    case note(value: Int, duration: Int)
-    case rest(value: Int = 60, duration: Int)
-    case space
-}
-
-extension [SheetElement] {
-    
-    func expanded() -> [SheetElement] {
-        
-        var elements = [SheetElement]()
-        
-        for element in self {
-            elements.append(element)
-            switch element {
-                case .note(_, let duration):
-                    if duration > 1 {
-                        elements.append(contentsOf: Array(repeating: .space, count: duration - 1))
-                    }
-                case .rest(_, let duration):
-                    if duration > 1 {
-                        elements.append(contentsOf: Array(repeating: .space, count: duration - 1))
-                    }
-                case .space:
-                    continue
-            }
-        }
-        
-        return elements
-        
-    }
-    
-}
+import AudioToolbox
 
 struct Clef {
     
