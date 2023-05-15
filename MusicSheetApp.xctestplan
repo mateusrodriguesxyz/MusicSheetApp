@@ -1,0 +1,29 @@
+{
+  "configurations" : [
+    {
+      "id" : "8F4BCD92-A0D7-43E0-8ED1-59D342096ACA",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:MusicSheetApp.xcodeproj",
+      "identifier" : "DCDC0D1B29204FEB0085D821",
+      "name" : "MusicSheetApp"
+    }
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:MusicSheetApp.xcodeproj",
+        "identifier" : "27BF635F2A0C286D004DCC09",
+        "name" : "MusicSheetAppTests"
+      }
+    }
+  ],
+  "version" : 1
+}

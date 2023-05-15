@@ -59,10 +59,47 @@ public class AVAudioUnitMIDISynth: AVAudioUnitMIDIInstrument {
 
 class AudioSynth: ObservableObject {
     
+    let bankURL = Bundle.main.url(forResource: "GeneralUser GS MuseScore v1.442", withExtension: "sf2")!
+    
     let sampler = AVAudioUnitSampler()
     let engine = AVAudioEngine()
     
     lazy var sequencer = AVAudioSequencer(audioEngine: engine)
+    
+    lazy var instruments: [Instrument] = {
+        
+        var _instrumentsInfo: Unmanaged<CFArray>?
+        
+        CopyInstrumentInfoFromSoundBank(bankURL as CFURL, &_instrumentsInfo)
+
+        let instrumentsInfo = _instrumentsInfo!.takeRetainedValue() as NSArray
+        
+        var instruments = [Instrument]()
+        
+        for info in instrumentsInfo.map({ $0 as! NSDictionary }) {
+                
+            let lsb = info.value(forKey: "LSB") as! Int
+            let msb = info.value(forKey: "MSB") as! Int
+            let name = info.value(forKey: "name") as! String
+            let program = info.value(forKey: "program") as! Int
+                
+            let instrument = Instrument(LSB: lsb, MSB: msb, name: name, program: program)
+            
+            instruments.append(instrument)
+        }
+        
+        instruments.sort(using: KeyPathComparator(\.program))
+        
+        return instruments
+        
+        
+    }()
+    
+    @Published var instrument = Instrument(LSB: 0, MSB: 0, name: "", program: 0) {
+        didSet {
+            sampler.load(instrument, from: bankURL)
+        }
+    }
     
     init() {
         
@@ -71,27 +108,39 @@ class AudioSynth: ObservableObject {
         
         try! engine.start()
         
-        let bankURL = Bundle.main.url(forResource: "GeneralUser GS MuseScore v1.442", withExtension: "sf2")!
-        
-        sampler.load(.piano, from: bankURL)
+        instrument = instruments.first(where: { $0.name == "Electric Grand" })!
+                
+        sampler.load(instrument, from: bankURL)
 //        sampler.loadMIDISynthSoundFont(bankURL)
         
     }
     
     func play(_ notes: [Int]) {
         
-        sequencer.stop()
-        
-        sequencer.currentPositionInBeats = TimeInterval(0)
-        
-        let sequence = makeSequence(from: notes)
-        
-        try! sequencer.load(from: sequence.data, options: AVMusicSequenceLoadOptions())
-        
-        sequencer.prepareToPlay()
-        
-        try! sequencer.start()
-        
+        if notes.count == 1 {
+            
+            sampler.startNote(UInt8(notes.first!), withVelocity: 64, onChannel: 0)
+            
+//            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+//                self.sampler.stopNote(UInt8(notes.first!), onChannel: 0)
+//            }
+            
+        } else {
+            
+            sequencer.stop()
+    
+            sequencer.currentPositionInBeats = TimeInterval(0)
+    
+            let sequence = makeSequence(from: notes)
+    
+            try! sequencer.load(from: sequence.data, options: AVMusicSequenceLoadOptions())
+    
+            sequencer.prepareToPlay()
+    
+            try! sequencer.start()
+            
+        }
+//
     }
     
     func play(_ sequence: MusicSequence) {
@@ -172,12 +221,12 @@ extension MusicSequence {
 
 extension AVAudioUnitSampler {
     
-    public func load(_ instrument: Instrument, from bankURL: URL) {
+    func load(_ instrument: Instrument, from bankURL: URL) {
         try! self.loadSoundBankInstrument(
             at: bankURL,
             program: UInt8(instrument.program),
-            bankMSB: UInt8(instrument.msb),
-            bankLSB: UInt8(instrument.lsb)
+            bankMSB: UInt8(instrument.MSB),
+            bankLSB: UInt8(instrument.LSB)
         )
 //        try! loadSoundBankInstrument(
 //            at: bankURL,
@@ -189,15 +238,10 @@ extension AVAudioUnitSampler {
     
 }
 
-public struct Instrument {
+struct Instrument: Identifiable, Hashable {
+    let id = UUID()
+    var LSB: Int
+    var MSB: Int
     var name: String
     var program: Int
-    var lsb: Int
-    var msb: Int
-}
-
-extension Instrument {
-    public static var piano = Instrument(name: "Piano", program: 3, lsb: 0, msb: 121)
-    public static var violin = Instrument(name: "Violin", program: 40, lsb: 0, msb: 121)
-    public static var woodBlock = Instrument(name: "Wood Block", program: 115, lsb: 0, msb: 121)
 }
