@@ -1,5 +1,6 @@
 import AVFoundation
 import AudioToolbox
+import SwiftUI
 
 public class AVAudioUnitMIDISynth: AVAudioUnitMIDIInstrument {
     
@@ -66,23 +67,31 @@ class AudioSynth: ObservableObject {
     
     lazy var sequencer = AVAudioSequencer(audioEngine: engine)
     
+    let mixer = AVAudioMixerNode()
+    
+    var filePath : String? = nil
+    
+    var recordingFile: AVAudioFile?
+    
+    var player: AVAudioPlayer?
+    
     lazy var instruments: [Instrument] = {
         
         var _instrumentsInfo: Unmanaged<CFArray>?
         
         CopyInstrumentInfoFromSoundBank(bankURL as CFURL, &_instrumentsInfo)
-
+        
         let instrumentsInfo = _instrumentsInfo!.takeRetainedValue() as NSArray
         
         var instruments = [Instrument]()
         
         for info in instrumentsInfo.map({ $0 as! NSDictionary }) {
-                
+            
             let lsb = info.value(forKey: "LSB") as! Int
             let msb = info.value(forKey: "MSB") as! Int
             let name = info.value(forKey: "name") as! String
             let program = info.value(forKey: "program") as! Int
-                
+            
             let instrument = Instrument(LSB: lsb, MSB: msb, name: name, program: program)
             
             instruments.append(instrument)
@@ -109,9 +118,9 @@ class AudioSynth: ObservableObject {
         try! engine.start()
         
         instrument = instruments.first(where: { $0.name == "Electric Grand" })!
-                
+        
         sampler.load(instrument, from: bankURL)
-//        sampler.loadMIDISynthSoundFont(bankURL)
+        //        sampler.loadMIDISynthSoundFont(bankURL)
         
     }
     
@@ -121,26 +130,34 @@ class AudioSynth: ObservableObject {
             
             sampler.startNote(UInt8(notes.first!), withVelocity: 64, onChannel: 0)
             
-//            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-//                self.sampler.stopNote(UInt8(notes.first!), onChannel: 0)
-//            }
+            //            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            //                self.sampler.stopNote(UInt8(notes.first!), onChannel: 0)
+            //            }
             
         } else {
             
             sequencer.stop()
-    
+            
             sequencer.currentPositionInBeats = TimeInterval(0)
-    
+            
             let sequence = makeSequence(from: notes)
-    
+            
             try! sequencer.load(from: sequence.data, options: AVMusicSequenceLoadOptions())
-    
+            
             sequencer.prepareToPlay()
-    
+            
             try! sequencer.start()
             
         }
-//
+        //
+    }
+    
+    func start(_ note: Int) {
+        sampler.startNote(UInt8(note), withVelocity: 64, onChannel: 0)
+    }
+    
+    func stop(_ note: Int) {
+        sampler.stopNote(UInt8(note), onChannel: 0)
     }
     
     func play(_ sequence: MusicSequence) {
@@ -148,13 +165,64 @@ class AudioSynth: ObservableObject {
         sequencer.stop()
         
         sequencer.currentPositionInBeats = TimeInterval(0)
-     
+        
         try! sequencer.load(from: sequence.data, options: AVMusicSequenceLoadOptions())
         
         sequencer.prepareToPlay()
         
         try! sequencer.start()
         
+    }
+    
+    func startRecording() {
+        
+        print(#function)
+        
+        createRecordingFile()
+        
+        self.engine.mainMixerNode.installTap(onBus: 0,
+                                             bufferSize: 1024,
+                                             format: self.engine.mainMixerNode.outputFormat(forBus: 0)) { (buffer, time) -> Void in
+            do {
+                print("writing...")
+                try self.recordingFile?.write(from: buffer)
+            } catch (let error) {
+                print("RECORD ERROR", error);
+            }
+            return
+        }
+    }
+    
+    func stopRecording() {
+        
+        print(#function)
+        
+        self.engine.mainMixerNode.removeTap(onBus: 0)
+    }
+    
+    func playRecording() {
+        if let url = self.recordingFile?.url {
+            do {
+                self.player = try AVAudioPlayer(contentsOf:  url)
+                self.player?.prepareToPlay()
+                self.player?.play()
+            } catch let error as NSError {
+                print("audioPlayer error: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    fileprivate func createRecordingFile() {
+        if let dir = NSSearchPathForDirectoriesInDomains(FileManager.SearchPathDirectory.documentDirectory, FileManager.SearchPathDomainMask.allDomainsMask, true).first {
+            var url = URL(fileURLWithPath: dir)
+            url.appendPathComponent("my_file.caf")
+            let format = self.engine.outputNode.inputFormat(forBus: 0)
+            do {
+                self.recordingFile = try AVAudioFile(forWriting: url, settings:format.settings)
+            } catch (let error) {
+                print("CREATE RECORDING FILE ERROR", error);
+            }
+        }
     }
     
 }
@@ -228,12 +296,12 @@ extension AVAudioUnitSampler {
             bankMSB: UInt8(instrument.MSB),
             bankLSB: UInt8(instrument.LSB)
         )
-//        try! loadSoundBankInstrument(
-//            at: bankURL,
-//            program: 0,
-//            bankMSB: UInt8(kAUSampler_DefaultMelodicBankMSB),
-//            bankLSB: UInt8(kAUSampler_DefaultBankLSB)
-//        )
+        //        try! loadSoundBankInstrument(
+        //            at: bankURL,
+        //            program: 0,
+        //            bankMSB: UInt8(kAUSampler_DefaultMelodicBankMSB),
+        //            bankLSB: UInt8(kAUSampler_DefaultBankLSB)
+        //        )
     }
     
 }

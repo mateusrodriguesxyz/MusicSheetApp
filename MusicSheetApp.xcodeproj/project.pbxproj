@@ -9,6 +9,9 @@
 /* Begin PBXBuildFile section */
 		274016162A0EAF97005E6642 /* Keyboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 274016152A0EAF97005E6642 /* Keyboard.swift */; };
 		274016182A0EB085005E6642 /* Note.swift in Sources */ = {isa = PBXBuildFile; fileRef = 274016172A0EB085005E6642 /* Note.swift */; };
+		27A526792A164B8500CBE9B5 /* OnPressActionModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27A526782A164B8500CBE9B5 /* OnPressActionModifier.swift */; };
+		27A5267B2A164BB100CBE9B5 /* KeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27A5267A2A164BB100CBE9B5 /* KeyboardView.swift */; };
+		27A5267D2A164BC600CBE9B5 /* KeyViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27A5267C2A164BC600CBE9B5 /* KeyViews.swift */; };
 		27B947432A0BD62300612588 /* SwiftUIView2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27B947422A0BD62300612588 /* SwiftUIView2.swift */; };
 		27BF63632A0C286D004DCC09 /* MusicSheetAppTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27BF63622A0C286D004DCC09 /* MusicSheetAppTests.swift */; };
 		DC028FF0292163BD00E01234 /* Clef.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC028FEF292163BD00E01234 /* Clef.swift */; };
@@ -35,6 +38,9 @@
 /* Begin PBXFileReference section */
 		274016152A0EAF97005E6642 /* Keyboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keyboard.swift; sourceTree = "<group>"; };
 		274016172A0EB085005E6642 /* Note.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Note.swift; sourceTree = "<group>"; };
+		27A526782A164B8500CBE9B5 /* OnPressActionModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnPressActionModifier.swift; sourceTree = "<group>"; };
+		27A5267A2A164BB100CBE9B5 /* KeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardView.swift; sourceTree = "<group>"; };
+		27A5267C2A164BC600CBE9B5 /* KeyViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyViews.swift; sourceTree = "<group>"; };
 		27B947422A0BD62300612588 /* SwiftUIView2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftUIView2.swift; sourceTree = "<group>"; };
 		27BF63602A0C286D004DCC09 /* MusicSheetAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MusicSheetAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		27BF63622A0C286D004DCC09 /* MusicSheetAppTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicSheetAppTests.swift; sourceTree = "<group>"; };
@@ -103,9 +109,12 @@
 				DCDC0D1F29204FEB0085D821 /* MusicSheetAppApp.swift */,
 				274016172A0EB085005E6642 /* Note.swift */,
 				274016152A0EAF97005E6642 /* Keyboard.swift */,
+				27A5267C2A164BC600CBE9B5 /* KeyViews.swift */,
+				27A5267A2A164BB100CBE9B5 /* KeyboardView.swift */,
 				DCDC0D2129204FEB0085D821 /* ContentView.swift */,
 				DC028FEF292163BD00E01234 /* Clef.swift */,
 				DC71EFEE292122BE00D29293 /* AudioSynth.swift */,
+				27A526782A164B8500CBE9B5 /* OnPressActionModifier.swift */,
 				DCD512892A00533900092AA9 /* MusicKeyboardView.swift */,
 				DCFEB96C2922E08D00FFE041 /* SwiftUIView.swift */,
 				27B947422A0BD62300612588 /* SwiftUIView2.swift */,
@@ -238,11 +247,14 @@
 				DCDC0D2229204FEB0085D821 /* ContentView.swift in Sources */,
 				274016162A0EAF97005E6642 /* Keyboard.swift in Sources */,
 				DCDC0D2029204FEB0085D821 /* MusicSheetAppApp.swift in Sources */,
+				27A5267D2A164BC600CBE9B5 /* KeyViews.swift in Sources */,
+				27A5267B2A164BB100CBE9B5 /* KeyboardView.swift in Sources */,
 				DCD5128A2A00533900092AA9 /* MusicKeyboardView.swift in Sources */,
 				274016182A0EB085005E6642 /* Note.swift in Sources */,
 				27B947432A0BD62300612588 /* SwiftUIView2.swift in Sources */,
 				DC028FF0292163BD00E01234 /* Clef.swift in Sources */,
 				DCFEB96D2922E08D00FFE041 /* SwiftUIView.swift in Sources */,
+				27A526792A164B8500CBE9B5 /* OnPressActionModifier.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
