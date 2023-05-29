@@ -29,9 +29,6 @@ struct Keyboard {
         
     }
     
-    var keys: [Key] = build(from: Note(midi: 60, _note: .c), count: 35).map({ Key(note: $0, isPressed: false, rect: .zero) })
-    
-//    var keyRects: [Key: CGRect] = [:]
-    
+    var keys: [Key] = build(from: Note(midi: 24, _note: .c), count: 35).map({ Key(note: $0, isPressed: false, rect: .zero) })
     
 }

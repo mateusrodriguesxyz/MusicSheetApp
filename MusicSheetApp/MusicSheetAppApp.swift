@@ -55,6 +55,8 @@ struct ContentView: View {
     @State var keyboard = Keyboard()
     
     @State var glissando = Glissando()
+    
+    @State var glissandos = [Int: Glissando]()
             
     var body: some View {
         VStack {
@@ -123,16 +125,6 @@ struct ContentView: View {
                 }
             }
             .coordinateSpace(name: "keyboard")
-//            .simultaneousGesture(
-//                DragGesture(minimumDistance: 5)
-//                    .onChanged { value in
-//                        guard value.location.y >= 150 else { return }
-//                        glissando.handle(value.location)
-//                    }
-//                    .onEnded { _ in
-//                        glissando.release()
-//                    }
-//            )
             .overlay(alignment: .top) {
                 Color.black.frame(height: 2)
                     .padding(.horizontal, -0.5)
@@ -140,20 +132,38 @@ struct ContentView: View {
             }
             .background {
                 RoundedRectangle(cornerRadius: 4, style: .continuous)
-                    .padding(.all, -4)
+                    .fill(Color(uiColor: .secondarySystemBackground.resolvedColor(with: UITraitCollection(userInterfaceStyle: .dark))).gradient)
+                    .padding(.all, -8)
             }
             .onAppear {
                 glissando.allKeys = $keyboard.keys
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(.black)
     }
     
     func makeWhiteKey(for key: Binding<Keyboard.Key>) -> some View {
         WhiteKey(isPressed: key.isPressed, action: {})
             .simultaneousGesture(
                 DragGesture(minimumDistance: 5, coordinateSpace: .named("keyboard"))
-                    .onChanged{ _ in
-                        print("AnotherGesture")
+                    .onChanged { value in
+                        guard value.location.y >= 150 else { return }
+                        
+                        let id = key.wrappedValue.note.midi
+                        
+                        if glissandos[id] == nil {
+                            glissandos[id] = Glissando()
+                            glissandos[id]?.allKeys = $keyboard.keys
+                        }
+                        
+                        glissandos[id]?.handle(value.location)
+                    }
+                    .onEnded { _ in
+                        
+                        let id = key.wrappedValue.note.midi
+                        
+                        glissandos[id]?.release()
                     }
             )
             .overlay(alignment: .bottom) {
@@ -182,16 +192,9 @@ struct ContentView: View {
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        Group {
-            ContentView()
-            HStack {
-                WhiteKey(isPressed: .constant(false), action: {})
-                WhiteKey(isPressed: .constant(true), action: {})
-            }
-        }
-        .padding()
-        .previewLayout(.sizeThatFits)
-        .previewInterfaceOrientation(.landscapeLeft)
-        
+        ContentView()
+            .previewLayout(.sizeThatFits)
+            .previewInterfaceOrientation(.landscapeLeft)
+            
     }
 }
